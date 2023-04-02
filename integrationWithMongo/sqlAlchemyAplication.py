@@ -10,6 +10,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
 from sqlalchemy import select
+from sqlalchemy import func
 
 Base = declarative_base()
 
@@ -63,35 +64,59 @@ with Session(engine) as session:
     )
 
     pedro = User(
-        name = 'Pedro',
-        fullname =' Pedro Pires',
-        address = [Address(email_address='pires@gmail.com'),
-                   Address(email_address='pedropires@email.com')]
+        name='Pedro',
+        fullname=' Pedro Pires',
+        address=[Address(email_address='pires@gmail.com'),
+                 Address(email_address='pedropires@email.com')]
     )
 
     lars = User(
         name='Lars',
         fullname='Lars Cado',
-        address = [Address(email_address='lars@gmail.com'),
-                   Address(email_address='larscado@email.com')]
+        address=[Address(email_address='lars@gmail.com'),
+                 Address(email_address='larscado@email.com')]
     )
-    
-    # enviando para o BD (persistencia de dados)
-    session.add_all([daniel,lars, pedro ])
-    
-    session.commit()
-    
 
-stmt = select(User).where(User.name.in_(['Daniel', 'Pedro','Lars']))
+    # enviando para o BD (persistencia de dados)
+    session.add_all([daniel, lars, pedro])
+
+    session.commit()
+
+
+stmt = select(User).where(User.name.in_(['Daniel', 'Pedro', 'Lars']))
 print('\nRecuperando usuariaos a partir de condição de filtragem:')
 
 for user in session.scalars(stmt):
     print(user)
-    
-    
+
+
 stmt_address = select(Address).where(Address.user_id.in_([3]))
 print('\nRecuperando os endereços de email do Pedro')
 
 for address in session.scalars(stmt_address):
     print(address)
-    
+
+stmt_order = select(User).order_by(User.fullname.desc())
+print('\nrecuperando info de maneira ordenada')
+for result in session.scalars(stmt_order):
+    print(result)
+
+
+stmt_join = select(
+    User.fullname, Address.email_address).join_from(Address, User)
+for resut in session.scalars(stmt_join):
+    print(result)
+
+connetion = engine.connect()
+results = connetion.execute(stmt_join).fetchall()
+
+print("\nExecutanto statetment a partir da connetion")
+
+for result in results:
+    print(result)
+
+stmt_count = select(func.count('')).select_from(User)
+print("\nTotal de instancias em User")
+
+for i in session.scalars(stmt_count):
+    print(i)
