@@ -43,6 +43,5 @@ result = posts.insert_many(new_posts)
 print(result.inserted_ids)
 
 
-
 for post in posts.find():
     print(post)
